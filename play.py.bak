@@ -1,0 +1,114 @@
+#!/usr/bin/env python
+
+import os, sys, time, Image
+import checkgamestate 
+import hitballs
+
+"""
+How to run:
+
+
+"""
+
+program = "firefox"
+os.system("xdotool search --class %s windowactivate" % program)
+os.system("./initialGame.sh")
+
+start_time = time.time()
+
+IMAGE_BBOX = (276, 199, 976, 699)
+
+#crop the pool table
+def cropImage(name="screenshot"):
+    os.system("./getScreen.py")
+    full_image = Image.open("screenshot.png")
+    sub_image = full_image.crop(IMAGE_BBOX)
+    sub_image.save("%s.png" % name)
+
+if __name__ == "__main__":
+    cropImage() 
+
+
+    originX, originY = IMAGE_BBOX[0], IMAGE_BBOX[1]
+    os.system("xdotool mousemove %d %d mousedown 1 mousemove %d %d >/dev/null 2>&1" % (764, 423, 50, 423))
+    time.sleep(0.5)
+    os.system("xdotool mouseup 1")
+    while True:
+        if time.time() - start_time >= 300:
+            break
+        # take image    
+        cropImage()
+        #check whether it is time to make a hit
+        # Nghia part
+        image = Image.open("screenshot.png")
+        if checkgamestate.is_game_ready(image):
+            #### Hit the ball.... ###
+            ### Minh part
+
+            ### Do part
+            tq, tt = hitballs.getMousePosition()
+            xw, yw = tq
+	    for i in range(len(tt)):
+	    	x1, y1 = tt[i]
+
+		x1, y1 = x1 + originX, y1 + originY
+		os.system("xdotool mousemove %d %d >/dev/null 2>&1" % (x1, y1))
+		time.sleep(0.5)
+
+	    import random
+	    n = random.randint(0, len(tt)-1)
+	    x1, y1 = tt[n]	
+            x1, y1 = x1 + originX, y1 + originY
+            xw, yw = xw + originX, yw + originY
+            os.system("xdotool mousemove %d %d mousedown 1 mousemove %d %d >/dev/null 2>&1" % (x1, y1, xw, yw))
+            time.sleep(0.5)
+            os.system("xdotool mouseup 1 >/dev/null 2>&1")
+
+
+        else: time.sleep(0.5) 
+    print "game finished"
+    # delete images
+    os.system("rm screenshot.png")
+
+
+            
+    
+
+
+"""
+line = open("initialMouse", 'r').readline()
+ref = line.split()
+file_name = "testGame.py"
+
+# run game 1st time and put coor into a file
+os.system("python %s > coordinate" % file_name)
+
+list_coordinate_str = open("coordinate", 'r').readline()
+list_coordinate_list = list_coordinate_str.split()
+x1, y1 = (int)(list_coordinate_list[0]), (int)(list_coordinate_list[1])
+x_w, y_w = (int)(list_coordinate_list[2]), (int)(list_coordinate_list[3])
+
+
+#change coordinates to ref
+x1, x_w = x1 + (int)(ref[0]), x_w + (int)(ref[0])
+y1, y_w = y1 + (int)(ref[1]), y_w + (int)(ref[1])
+
+while x1 >= 0 and y1 >= 0:
+    time.sleep(1) # wait for 0.2s 
+    os.system("xdotool mousemove %d %d mousedown 1 mousemove %d %d mouseup 1 >/dev/null 2>&1" % (x1, y1, x_w, y_w))
+    # finish one turn 
+    #test 
+    print "run"
+    # run program again
+    os.system("python %s > coordinate" % file_name)
+    list_coordinate_str = open("coordinate", 'r').readline()
+    list_coordinate_list = list_coordinate_str.split()
+    x1, y1 = (int)(list_coordinate_list[0]), (int)(list_coordinate_list[1])
+    x_w, y_w = (int)(list_coordinate_list[2]), (int)(list_coordinate_list[3])
+    x1, x_w = x1 + (int)(ref[0]), x_w + (int)(ref[0])
+    y1, y_w = y1 + (int)(ref[1]), y_w + (int)(ref[1])
+
+
+# delete created files
+os.system("rm initialMouse coordinate")
+"""
